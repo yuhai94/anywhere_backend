@@ -1,0 +1,18 @@
+[Unit]
+Description=Anywhere Backend Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/aw_backend
+ExecStart=/opt/aw_backend/bin/backend --config=/opt/aw_backend/conf/conf.yaml --log-dir=/var/log/aw_backend
+ExecStop=/bin/kill -SIGTERM $MAINPID
+Restart=on-failure
+RestartSec=5s
+KillMode=process
+KillSignal=SIGTERM
+TimeoutStopSec=30s
+
+[Install]
+WantedBy=multi-user.target

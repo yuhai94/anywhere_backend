@@ -1,0 +1,33 @@
+# config/config.yaml
+server:
+  port: 8000
+
+database:
+  host: localhost
+  port: 3306
+  user: root
+  password: xxx
+  dbname: v2ray_manager
+
+aws:
+  access_key: xx
+  secret_key: xx
+  regions:
+    ap-east-1:
+      template_id: xxx
+
+    us-west-2:
+      template_id: xxx
+
+v2ray:
+  local_config_path: "/usr/local/etc/v2ray/config.json"
+  port: 11994
+
+logging:
+  level: info
+  format: json
+  file: ./logs/aw_backend.log
+
+scheduler:
+  instance_sync_interval: 60
+  instance_wait_timeout: 300
