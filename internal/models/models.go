@@ -53,6 +53,11 @@ type V2RayInstance struct {
 	IsDeleted     bool       `db:"is_deleted" json:"-"`
 }
 
+type Region struct {
+	Region string `json:"region"`
+	Name   string `json:"name"`
+}
+
 const (
 	StatusPending  = "pending"
 	StatusCreating = "creating"

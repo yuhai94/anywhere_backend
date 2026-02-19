@@ -129,3 +129,17 @@ func (h *V2RayHandler) DeleteInstance(c *gin.Context) {
 		Status: "deleting",
 	})
 }
+
+// ListRegions 处理获取支持的 AWS 区域列表的 HTTP 请求
+// 参数:
+//   - c: Gin 上下文，用于处理 HTTP 请求和响应
+//
+// 功能:
+//  1. 调用服务层获取支持的区域列表
+//  2. 返回区域列表
+func (h *V2RayHandler) ListRegions(c *gin.Context) {
+	ctx := logging.WithRequestID(c.Request.Context())
+
+	regions := h.service.ListRegions(ctx)
+	c.JSON(http.StatusOK, regions)
+}

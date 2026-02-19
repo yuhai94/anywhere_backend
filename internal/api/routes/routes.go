@@ -13,6 +13,7 @@ import (
 // 功能:
 //  1. 创建 API 路由组
 //  2. 为 V2Ray 相关操作设置路由
+//     - GET /api/v2ray/regions: 获取支持的区域列表
 //     - POST /api/v2ray/instances: 创建实例
 //     - GET /api/v2ray/instances: 获取实例列表
 //     - GET /api/v2ray/instances/:id: 获取实例详情
@@ -22,6 +23,7 @@ func SetupRoutes(router *gin.Engine, v2rayHandler *handlers.V2RayHandler) {
 	{
 		v2ray := api.Group("/v2ray")
 		{
+			v2ray.GET("/regions", v2rayHandler.ListRegions)
 			v2ray.POST("/instances", v2rayHandler.CreateInstance)
 			v2ray.GET("/instances", v2rayHandler.ListInstances)
 			v2ray.GET("/instances/:uuid", v2rayHandler.GetInstance)

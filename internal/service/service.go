@@ -471,6 +471,29 @@ func (s *V2RayService) deleteInstanceAsync(ctx context.Context, uuid string, ec2
 	logging.Info(ctx, "Instance %s deleted successfully", uuid)
 }
 
+// ListRegions 列出所有支持的 AWS 区域
+// 参数:
+//   - ctx: 上下文，用于传递请求范围的值
+//
+// 返回值:
+//   - []*models.Region: 区域列表
+//
+// 功能:
+//  1. 从配置文件中获取所有配置的区域
+//  2. 返回区域代码和名称的列表
+func (s *V2RayService) ListRegions(ctx context.Context) []*models.Region {
+	var regions []*models.Region
+
+	for regionCode, regionConfig := range config.AppConfig.AWS.Regions {
+		regions = append(regions, &models.Region{
+			Region: regionCode,
+			Name:   regionConfig.Name,
+		})
+	}
+
+	return regions
+}
+
 // Wait 等待所有异步操作完成
 // 功能:
 //  1. 阻塞直到所有通过 WaitGroup 跟踪的异步操作完成
