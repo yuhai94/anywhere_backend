@@ -52,11 +52,21 @@ type SystemPolicyConfig struct {
 }
 
 type InboundConfig struct {
-	Tag      string      `json:"tag,omitempty"`
-	Port     int         `json:"port,omitempty"`
-	Protocol string      `json:"protocol,omitempty"`
-	Listen   string      `json:"listen,omitempty"`
-	Settings interface{} `json:"settings,omitempty"`
+	Tag      string                `json:"tag,omitempty"`
+	Port     int                   `json:"port,omitempty"`
+	Protocol string                `json:"protocol,omitempty"`
+	Listen   string                `json:"listen,omitempty"`
+	Settings *VmessInboundSettings `json:"settings,omitempty"`
+}
+
+type VmessInboundSettings struct {
+	Clients []VmessClientConfig `json:"clients,omitempty"`
+}
+
+type VmessClientConfig struct {
+	AlterId int    `json:"alterId,omitempty"`
+	Email   string `json:"email,omitempty"`
+	ID      string `json:"id,omitempty"`
 }
 
 type OutboundConfig struct {
@@ -301,4 +311,39 @@ func (m *LocalV2RayManager) ReloadConfig(ctx context.Context) error {
 	// For now, we'll just log that a reload is needed
 	logging.Info(ctx, "Local V2Ray config updated. Please reload V2Ray service.")
 	return nil
+}
+
+// GetRelayConfig 获取本地 V2Ray 的中转配置
+// 参数:
+//   - region: AWS 区域名称
+//
+// 返回值:
+//   - int: 中转端口
+//   - string: 中转 UUID
+//   - error: 错误信息
+//
+// 功能:
+//  1. 读取本地 V2Ray 配置文件
+//  2. 查找 protocol="vmess" 的 inbound
+//  3. 匹配 email 为 "user_aws_"+region 的 client
+//  4. 返回找到的端口和 UUID
+func (m *LocalV2RayManager) GetRelayConfig(region string) (int, string, error) {
+	config, err := m.ReadConfig()
+	if err != nil {
+		return 0, "", fmt.Errorf("failed to read config: %v", err)
+	}
+
+	expectedEmail := "user_aws_" + region
+
+	for _, inbound := range config.Inbounds {
+		if inbound.Protocol == "vmess" && inbound.Settings != nil {
+			for _, client := range inbound.Settings.Clients {
+				if client.Email == expectedEmail {
+					return inbound.Port, client.ID, nil
+				}
+			}
+		}
+	}
+
+	return 0, "", fmt.Errorf("relay config not found for region %s", region)
 }

@@ -24,6 +24,7 @@ aws:
 v2ray:
   local_config_path: "/usr/local/etc/v2ray/config.json"
   port: 11994
+  public_ip: "1.2.3.4"
 
 logging:
   level: info

@@ -328,6 +328,43 @@ func (s *V2RayService) createInstanceAsync(ctx context.Context, id int, region, 
 		}
 	}
 
+	// Generate and save VMess links
+	if regionConfig, ok := config.AppConfig.AWS.Regions[region]; ok {
+		ps := regionConfig.Name
+		if ps == "" {
+			ps = region
+		}
+
+		// Direct link (uses EC2 public IP and instance UUID)
+		directLink, err := models.GenerateVMessLink(publicIP, instanceUUID, fmt.Sprintf("%d", config.AppConfig.V2Ray.Port), ps)
+		if err != nil {
+			logging.Error(ctx, "Failed to generate direct link for instance %s: %v", instanceUUID, err)
+		}
+
+		// Relay link (uses configured public IP, port and UUID from local V2Ray config)
+		relayLink := ""
+		if config.AppConfig.V2Ray.PublicIP != "" && s.localV2RayManager != nil {
+			relayPort, relayUUID, getConfigErr := s.localV2RayManager.GetRelayConfig(region)
+			if getConfigErr != nil {
+				logging.Error(ctx, "Failed to get relay config for instance %s: %v", instanceUUID, getConfigErr)
+			} else {
+				relayLink, err = models.GenerateVMessLink(config.AppConfig.V2Ray.PublicIP, relayUUID, fmt.Sprintf("%d", relayPort), ps+" (中转)")
+				if err != nil {
+					logging.Error(ctx, "Failed to generate relay link for instance %s: %v", instanceUUID, err)
+				}
+			}
+		}
+
+		// Save links to database
+		if directLink != "" || relayLink != "" {
+			if err := s.repo.UpdateLinks(ctx, instanceUUID, directLink, relayLink); err != nil {
+				logging.Error(ctx, "Failed to save links for instance %s: %v", instanceUUID, err)
+			} else {
+				logging.Info(ctx, "Saved links for instance %s", instanceUUID)
+			}
+		}
+	}
+
 	if err := s.repo.UpdateStatusAndIP(ctx, instanceUUID, models.StatusRunning, publicIP); err != nil {
 		logging.Error(ctx, "Failed to update status to running: %v", err)
 		return

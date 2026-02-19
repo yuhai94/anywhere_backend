@@ -44,6 +44,7 @@ type AWSRegionConfig struct {
 type V2RayConfig struct {
 	LocalConfigPath string `yaml:"local_config_path"`
 	Port            int    `yaml:"port"`
+	PublicIP        string `yaml:"public_ip"`
 }
 
 type SchedulerConfig struct {

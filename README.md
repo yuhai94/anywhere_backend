@@ -78,6 +78,7 @@
 在 `v2ray` 部分，需要配置：
 - `local_config_path`：本地 V2Ray 配置文件路径，用于自动管理本地 V2Ray 配置
 - `port`：V2Ray 服务端口（默认 11994）
+- `public_ip`：当前实例的公网 IP 地址
 
 ### Scheduler 配置
 
@@ -161,6 +162,8 @@
       "ec2_region_name": "美东",
       "ec2_public_ip": "203.0.113.1",
       "status": "running",
+      "direct_link": "vmess://xxx",
+      "relay_link": "vmess://xx==",
       "created_at": "2024-01-01 00:00:00",
       "updated_at": "2024-01-01 00:00:00"
     }
@@ -195,6 +198,8 @@
     "ec2_region_name": "美东",
     "ec2_public_ip": "203.0.113.1",
     "status": "running",
+    "direct_link": "vmess://xx",
+    "relay_link": "vmess://xx==",
     "created_at": "2024-01-01 00:00:00",
     "updated_at": "2024-01-01 00:00:00"
   }

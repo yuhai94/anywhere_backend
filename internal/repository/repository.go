@@ -125,18 +125,40 @@ func (r *Repository) List(ctx context.Context) ([]*models.V2RayInstance, error) 
 func (r *Repository) Update(ctx context.Context, instance *models.V2RayInstance) error {
 	query := `
 		UPDATE v2ray_instances
-		SET ec2_id = ?, ec2_region = ?, ec2_public_ip = ?, status = ?, is_deleted = ?
+		SET ec2_id = ?, ec2_region = ?, ec2_public_ip = ?, status = ?, 
+		    direct_link = ?, relay_link = ?, is_deleted = ?
 		WHERE uuid = ?
 	`
 	_, err := r.db.ExecContext(ctx, query,
 		instance.EC2ID, instance.EC2Region, instance.EC2PublicIP,
-		instance.Status, instance.IsDeleted, instance.UUID,
+		instance.Status, instance.DirectLink, instance.RelayLink,
+		instance.IsDeleted, instance.UUID,
 	)
 	if err != nil {
 		logging.Error(ctx, "Failed to update instance %s: %v", instance.UUID, err)
 		return err
 	}
 	logging.Info(ctx, "Updated instance %s with status: %s", instance.UUID, instance.Status)
+	return nil
+}
+
+// UpdateLinks 更新 V2Ray 实例的链接字段
+// 参数:
+//   - ctx: 上下文，用于传递请求范围的值
+//   - uuid: 实例 UUID
+//   - directLink: 直连链接
+//   - relayLink: 中转链接
+//
+// 返回值:
+//   - error: 错误信息，如果更新失败
+func (r *Repository) UpdateLinks(ctx context.Context, uuid, directLink, relayLink string) error {
+	query := `UPDATE v2ray_instances SET direct_link = ?, relay_link = ? WHERE uuid = ?`
+	_, err := r.db.ExecContext(ctx, query, directLink, relayLink, uuid)
+	if err != nil {
+		logging.Error(ctx, "Failed to update links for instance %s: %v", uuid, err)
+		return err
+	}
+	logging.Info(ctx, "Updated links for instance %s", uuid)
 	return nil
 }
 
@@ -327,6 +349,8 @@ func (r *Repository) InitSchema(ctx context.Context) error {
 			ec2_region VARCHAR(100) NOT NULL COMMENT 'AWS 区域',
 			ec2_public_ip VARCHAR(50) NOT NULL DEFAULT '' COMMENT '公网 IP 地址',
 			status VARCHAR(50) NOT NULL COMMENT '实例状态（pending, creating, running, deleting, deleted, error）',
+			direct_link TEXT NOT NULL DEFAULT '' COMMENT '直连链接',
+			relay_link TEXT NOT NULL DEFAULT '' COMMENT '中转链接',
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
 			is_deleted BOOLEAN NOT NULL DEFAULT FALSE COMMENT '删除标志',

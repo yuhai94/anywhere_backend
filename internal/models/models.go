@@ -2,6 +2,8 @@ package models
 
 import (
 	"database/sql/driver"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -48,6 +50,8 @@ type V2RayInstance struct {
 	EC2RegionName string     `db:"-" json:"ec2_region_name"`
 	EC2PublicIP   string     `db:"ec2_public_ip" json:"ec2_public_ip"`
 	Status        string     `db:"status" json:"status"`
+	DirectLink    string     `db:"direct_link" json:"direct_link"`
+	RelayLink     string     `db:"relay_link" json:"relay_link"`
 	CreatedAt     CustomTime `db:"created_at" json:"created_at"`
 	UpdatedAt     CustomTime `db:"updated_at" json:"updated_at"`
 	IsDeleted     bool       `db:"is_deleted" json:"-"`
@@ -66,3 +70,49 @@ const (
 	StatusDeleted  = "deleted"
 	StatusError    = "error"
 )
+
+type VMessConfig struct {
+	Add  string `json:"add"`
+	Aid  string `json:"aid"`
+	Alpn string `json:"alpn"`
+	Fp   string `json:"fp"`
+	Host string `json:"host"`
+	ID   string `json:"id"`
+	Net  string `json:"net"`
+	Path string `json:"path"`
+	Port string `json:"port"`
+	Ps   string `json:"ps"`
+	Scy  string `json:"scy"`
+	Sni  string `json:"sni"`
+	Tls  string `json:"tls"`
+	Type string `json:"type"`
+	V    string `json:"v"`
+}
+
+func GenerateVMessLink(add, id, port, ps string) (string, error) {
+	config := VMessConfig{
+		Add:  add,
+		Aid:  "0",
+		Alpn: "",
+		Fp:   "",
+		Host: "",
+		ID:   id,
+		Net:  "tcp",
+		Path: "",
+		Port: port,
+		Ps:   ps,
+		Scy:  "auto",
+		Sni:  "",
+		Tls:  "",
+		Type: "none",
+		V:    "2",
+	}
+
+	jsonData, err := json.Marshal(config)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal vmess config: %v", err)
+	}
+
+	base64Data := base64.StdEncoding.EncodeToString(jsonData)
+	return "vmess://" + base64Data, nil
+}
