@@ -348,7 +348,18 @@ func (s *V2RayService) createInstanceAsync(ctx context.Context, id int, region, 
 //  1. 调用仓库层的 List 方法获取实例列表
 //  2. 返回实例列表和可能的错误
 func (s *V2RayService) ListInstances(ctx context.Context) ([]*models.V2RayInstance, error) {
-	return s.repo.List(ctx)
+	instances, err := s.repo.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, instance := range instances {
+		if regionConfig, ok := config.AppConfig.AWS.Regions[instance.EC2Region]; ok {
+			instance.EC2RegionName = regionConfig.Name
+		}
+	}
+
+	return instances, nil
 }
 
 // GetInstance 根据 ID 获取 V2Ray 实例详情
@@ -364,7 +375,16 @@ func (s *V2RayService) ListInstances(ctx context.Context) ([]*models.V2RayInstan
 //  1. 调用仓库层的 GetByID 方法获取实例详情
 //  2. 返回实例详情和可能的错误
 func (s *V2RayService) GetInstance(ctx context.Context, uuid string) (*models.V2RayInstance, error) {
-	return s.repo.GetByUUID(ctx, uuid)
+	instance, err := s.repo.GetByUUID(ctx, uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	if regionConfig, ok := config.AppConfig.AWS.Regions[instance.EC2Region]; ok {
+		instance.EC2RegionName = regionConfig.Name
+	}
+
+	return instance, nil
 }
 
 // DeleteInstance 删除 V2Ray 实例

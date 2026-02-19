@@ -38,6 +38,7 @@ type AWSConfig struct {
 
 type AWSRegionConfig struct {
 	TemplateID string `yaml:"template_id"`
+	Name       string `yaml:"name"`
 }
 
 type V2RayConfig struct {

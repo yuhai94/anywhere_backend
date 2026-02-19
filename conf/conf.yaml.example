@@ -15,9 +15,11 @@ aws:
   regions:
     ap-east-1:
       template_id: xxx
+      name: "香港"
 
     us-west-2:
       template_id: xxx
+      name: "美西"
 
 v2ray:
   local_config_path: "/usr/local/etc/v2ray/config.json"
